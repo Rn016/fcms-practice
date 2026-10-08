@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FCMS 题库练习 · AMA1702 / AMA1751 / COMP2012 / COMP1010</title>
+<link rel="stylesheet" href="vendor/katex/katex.min.css">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<!-- 斜向平铺水印（pointer-events:none，不影响阅读与操作） -->
+<div id="wmHost" class="watermark-layer" aria-hidden="true"></div>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="logo">FCMS</span>
+    <span class="brand-sub">题库练习 Question Bank</span>
+    <span class="brand-author">by RadoN</span>
+  </div>
+  <nav class="modes" id="modes">
+    <button class="mode-btn active" data-view="home"><span class="bi bi-inline"><span class="bi-en">Home</span><span class="bi-zh">首页</span></span></button>
+    <span class="crumb" id="navCrumb"></span>
+  </nav>
+  <div class="topright">
+    <div class="lang-switch" id="langSwitch">
+      <button data-lang="en">EN</button>
+      <button data-lang="both" class="on">EN+中</button>
+      <button data-lang="zh">中</button>
+    </div>
+    <span class="progress-chip" id="progressChip">—</span>
+  </div>
+</header>
+
+<main id="app">
+
+  <!-- ============================== 首页 ============================== -->
+  <section class="view" id="view-home">
+    <div class="hero">
+      <h1>FCMS Question Bank</h1>
+      <p class="hero-sub">
+        Practice platform for <strong>FCMS</strong> courses at The Hong Kong Polytechnic University.
+        <strong>Not multiple choice</strong> — you write the answer yourself, and the system
+        automatically checks whether your expression is equivalent to the reference answer.
+        Proof and short-answer questions are folded into the same list; open them to compare
+        against the full worked solution.
+      </p>
+      <p class="hero-sub" style="font-size:13.5px;color:#98a1b3;margin-top:-6px">
+        香港理工大学 <strong>FCMS</strong> 课程刷题平台。<strong>不是选择题</strong> ——
+        每题自己写出答案，系统自动判断你的写法是否与标准答案等价；
+        证明题与简答题直接混在同一题列表里，点开可对照完整过程。
+      </p>
+      <p class="hero-totals" id="homeTotals"></p>
+      <p class="hero-author">Made by <b>RadoN</b></p>
+    </div>
+
+    <div class="cards" id="moduleCards"></div>
+
+    <div class="tips">
+      <h3>答案怎么输入？<span style="font-weight:400;font-size:14px;color:#98a1b3">　How to type answers</span></h3>
+      <div class="tips-grid">
+        <div><b>分数</b><code>1/2</code> 或 <code>0.5</code> 都可以</div>
+        <div><b>根号</b><code>sqrt(2)</code>、<code>sqrt(x^3+1/4)</code></div>
+        <div><b>常数</b><code>pi</code>、<code>e</code>、<code>e^5</code>、<code>exp(5)</code></div>
+        <div><b>对数</b><code>ln(x)</code>、<code>log(x)</code> 都识别（自然对数）</div>
+        <div><b>三角</b><code>sin(x)</code>、<code>cos^2(x)</code>、<code>sec(x)</code></div>
+        <div><b>反三角</b><code>arctan(x)</code>、<code>atan(x)</code>、<code>tan^-1(x)</code></div>
+        <div><b>绝对值</b><code>|x|</code>、<code>abs(x)</code></div>
+        <div><b>区间</b><code>(-5,5)</code>、<code>-5&lt;x&lt;5</code>、<code>R</code>、<code>(-inf,inf)</code></div>
+        <div><b>矩阵</b>只在证明题里出现，无需输入</div>
+        <div><b>不存在</b>填 <code>DNE</code>；发散填 <code>divergent</code></div>
+        <div><b>连乘写法</b><code>2x</code>、<code>2pi</code>、<code>3sin(x)cos(x)</code> 自动识别</div>
+        <div><b>证明题</b>与填空题混在同一个题列表里，用「只看证明」筛选，无需输入</div>
+        <div><b>讲义精读</b>：中文讲解 + 英文术语标注，按讲次阅读</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== 练习 ============================== -->
+  <section class="view hidden" id="view-practice">
+    <div class="view-bar">
+      <button class="btn ghost back-home">← 返回首页 <span>Home</span></button>
+      <span class="view-bar-title">练习模式 <i>Practice</i></span>
+    </div>
+    <div class="practice-wrap">
+      <aside class="sidebar">
+        <div class="side-block">
+          <label class="side-label" for="subjectSelect">学科 Subject</label>
+          <select id="subjectSelect"></select>
+        </div>
+        <div class="side-block">
+          <label class="side-label" for="topicSelect">主题 Topic</label>
+          <select id="topicSelect"></select>
+        </div>
+        <div class="side-block">
+          <label class="side-label">筛选 Filters</label>
+          <label class="check"><input type="checkbox" id="onlyWrong"> 我做错的题 (wrong)</label>
+          <label class="check"><input type="checkbox" id="onlyStar"> 我标记的题 (starred)</label>
+          <label class="check"><input type="checkbox" id="onlyProof"> 只看证明题 (proof only)</label>
+        </div>
+        <div class="side-block">
+          <div class="side-label">题目列表 Questions</div>
+          <div class="qlist" id="qlist"></div>
+        </div>
+      </aside>
+
+      <div class="qpanel" id="qpanel">
+        <div class="empty">选择左侧某一题开始练习<br>Select a question on the left to start</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== 讲义精读 ============================== -->
+  <section class="view hidden" id="view-notes">
+    <div class="view-bar">
+      <button class="btn ghost back-home">← 返回首页 <span>Home</span></button>
+      <span class="view-bar-title">讲义精读 <i>Study Notes</i></span>
+    </div>
+    <div class="notes-wrap">
+      <aside class="notes-side">
+        <div class="notes-side-title">讲义目录 <span>Lectures</span></div>
+        <nav id="notesNav" class="notes-nav"></nav>
+      </aside>
+      <div class="notes-body" id="notesBody">
+        <div class="empty">选择左侧讲次开始阅读</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== 模拟卷 ============================== -->
+  <section class="view hidden" id="view-exam">
+    <div class="view-bar">
+      <button class="btn ghost back-home">← 返回首页 <span>Home</span></button>
+      <span class="view-bar-title">模拟卷模式 <i>Mock Papers</i></span>
+    </div>
+    <div class="exam-intro" id="examIntro">
+      <h2>模拟卷模式 Mock Paper Mode</h2>
+      <p>Papers are assembled strictly by the official <strong>question numbers, types and mark
+        allocation</strong>. Marking also follows the official allocation, and after submitting you get
+        a per-question mark table plus full reference solutions.</p>
+      <p style="font-size:13.5px;color:#98a1b3">严格按官方试卷的<strong>题号、题型与配分</strong>组卷。评分也按官方配分，交卷后给出逐题得分与完整参考解答。</p>
+      <div id="paperPick" class="paper-pick"></div>
+    </div>
+    <div id="examBody" class="hidden"></div>
+  </section>
+
+  <!-- ============================== 统计 ============================== -->
+  <section class="view hidden" id="view-stats">
+    <div class="view-bar">
+      <button class="btn ghost back-home">← 返回首页 <span>Home</span></button>
+      <span class="view-bar-title">作答统计 <i>Statistics</i></span>
+    </div>
+    <h2>作答统计 Statistics</h2>
+    <div id="statsBody" class="stats-body"></div>
+    <div class="stats-actions">
+      <button class="btn danger" id="resetStats">清空全部记录 Reset all</button>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <span>FCMS 题库练习 · 本地离线运行 · <b id="footSubjects">0</b> 个学科 · 共 <b id="footCount">0</b> 题</span>
+  <span class="foot-author">© <b>RadoN</b></span>
+  <span class="foot-note">答案判定：符号等价 + 数值采样，支持多种等价写法</span>
+</footer>
+
+<script src="vendor/nerdamer/nerdamer.min.js"></script>
+<script src="vendor/katex/katex.min.js"></script>
+<script src="vendor/katex/contrib/auto-render.min.js"></script>
+
+<script src="js/registry.js"></script>
+<script src="js/engine.js"></script>
+
+<!-- AMA1702 题库 -->
+<script src="questions/midterm.js"></script>
+<script src="questions/mid_past.js"></script>
+<script src="questions/final.js"></script>
+<script src="questions/past.js"></script>
+<script src="questions/proofs.js"></script>
+<script src="questions/papers.js"></script>
+
+<!-- 学科定义（顺序即首页卡片顺序） -->
+<!-- 模拟卷数据（必须在 subjects 之前加载） -->
+<script src="papers/ama1751.js"></script>
+<script src="papers/comp2012.js"></script>
+<script src="papers/comp1010.js"></script>
+
+<script src="subjects/ama1702.js"></script>
+<script src="subjects/ama1751.js"></script>
+<script src="subjects/comp2012.js"></script>
+<script src="subjects/comp1010.js"></script>
+
+<!-- 英文翻译层（缺失时自动回退中文） -->
+<script src="i18n/ama1702.en.js"></script>
+<script src="i18n/ama1751.en.js"></script>
+<script src="i18n/comp2012.en.js"></script>
+<script src="i18n/comp1010.en.js"></script>
+
+<!-- 讲义精读数据 -->
+<script src="notes/comp1010.js"></script>
+<script src="notes/ama1702.js"></script>
+<script src="notes/ama1751.js"></script>
+<script src="notes/comp2012.js"></script>
+
+<script src="js/app.js"></script>
+</body>
+</html>
